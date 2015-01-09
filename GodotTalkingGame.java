@@ -6,42 +6,42 @@ import android.app.Activity;
 import android.util.Log;
 
 import com.tendcloud.tenddata.TalkingDataGA;
+import com.tendcloud.tenddata.TDGAAccount;
 import com.tendcloud.tenddata.TDGAMission;
 import com.tendcloud.tenddata.TDGAItem;
 import com.tendcloud.tenddata.TDGAVirtualCurrency;
 
 public class GodotTalkingGame extends Godot.SingletonBase {
 
-    private boolean is_enable = true;
     private Activity activity;
 
-    public void onVirtualCurrencyReward(double virtualCurrencyAmount, String reason) {
-        if (is_enable) TDGAVirtualCurrency.onReward(virtualCurrencyAmount, reason);
+    public void onVirtualCurrencyReward(float virtualCurrencyAmount, String reason) {
+        TDGAVirtualCurrency.onReward(virtualCurrencyAmount, reason);
     }
 
-    public void onItemPurchase(String item, int itemNumber, double priceInVirtualCurrency) {
-        if (is_enable) TDGAItem.onPurchase(item, itemNumber, priceInVirtualCurrency);
+    public void onItemPurchase(String item, int itemNumber, float priceInVirtualCurrency) {
+        TDGAItem.onPurchase(item, itemNumber, priceInVirtualCurrency);
     }
 
     public void onItemUse(String item, int itemNumber) {
-        if (is_enable) TDGAItem.onUse(item, itemNumber);
+        TDGAItem.onUse(item, itemNumber);
     }
 
     public void onMissionBegin(String missionId) {
-        if (is_enable) TDGAMission.onBegin(missionId);
+        TDGAMission.onBegin(missionId);
     }
 
     public void onMissionCompleted(String missionId) {
-        if (is_enable) TDGAMission.onCompleted(missionId);
+        TDGAMission.onCompleted(missionId);
     }
 
     public void onMissionFailed(String missionId, String cause) {
-        if (is_enable) TDGAMission.onFailed(missionId, cause);
+        TDGAMission.onFailed(missionId, cause);
     }
 
     // custom event
     public void onEvent(String eventId, Dictionary eventData) {
-        if (is_enable) _onEvent(eventId, eventData);
+        _onEvent(eventId, eventData);
     }
 
     private void _onEvent(String eventId, Dictionary eventData) {
@@ -65,11 +65,7 @@ public class GodotTalkingGame extends Godot.SingletonBase {
                 "onMissionBegin", "onMissionCompleted", "onMissionFailed",
                 "onEvent"
         });
-        is_enable = GodotLib.getGlobal("talking_game/enable") != "False";
-        Log.d("godot", "TalkingGame Enabled: "+is_enable);
         activity = p_activity;
-        if (!is_enable) return;
-
         activity.runOnUiThread(new Runnable() {
             public void run() {
                 //boolean enable_debug = GodotLib.getGlobal("talking_game/debug") == "True";
@@ -79,6 +75,7 @@ public class GodotTalkingGame extends Godot.SingletonBase {
                 String channel = GodotLib.getGlobal("talking_game/channel");
                 Log.d("godot", "TalkingGame Init: "+app_id+" "+channel);
                 TalkingDataGA.init(activity, app_id, channel);
+                TDGAAccount.setAccount(TalkingDataGA.getDeviceId(activity));
             }
         });
 
@@ -89,6 +86,7 @@ public class GodotTalkingGame extends Godot.SingletonBase {
     }
 
     protected void onMainResume() {
+        TDGAAccount.setAccount(TalkingDataGA.getDeviceId(activity));
         TalkingDataGA.onResume(activity);
     }
 }
